@@ -24,7 +24,7 @@ fi
 
 # 2. Configuración de repositorio y variables
 REPO_URL="https://github.com/JeffersonConza/pinn_inverso_cd.git"
-S3_BUCKET_NAME="${S3_BUCKET:-pinns-models-repository}"
+S3_BUCKET_NAME="${S3_BUCKET:-pinns-inverso-cd-jconza}"
 
 # 3. Detectar sistema operativo e instalar dependencias base
 if command -v apt-get &> /dev/null; then

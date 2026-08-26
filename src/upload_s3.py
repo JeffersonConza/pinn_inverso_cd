@@ -8,7 +8,7 @@ from src.config import Config
 
 load_dotenv()
 
-S3_BUCKET = os.getenv("S3_BUCKET", "pinns-models-repository")
+S3_BUCKET = os.getenv("S3_BUCKET", "pinns-inverso-cd-jconza")
 MODEL_PATH = os.getenv("MODEL_PATH", Config.MODEL_PATH)
 S3_MODEL_KEY = os.getenv("S3_MODEL_KEY", "models/inverse_drag_pinn.pt")
 

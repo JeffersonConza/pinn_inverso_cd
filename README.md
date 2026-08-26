@@ -170,7 +170,7 @@ pip install -r requirements.txt
 PORT=8000
 HOST=0.0.0.0
 MODEL_PATH=models/inverse_drag_pinn.pt
-S3_BUCKET=pinns-models-repository
+S3_BUCKET=pinns-inverso-cd-jconza
 S3_MODEL_KEY=models/inverse_drag_pinn.pt
 ```
 
@@ -216,7 +216,7 @@ python -m uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
 El proyecto implementa un patrón desacoplado, seguro y de bajo costo sobre **Amazon Web Services**:
 
 ```
-[Entrenamiento Local / CI] ──(boto3)──> 📦 Amazon S3 (Bucket de Modelos)
+[Entrenamiento Local / CI] ──(boto3)──> 📦 Amazon S3 (pinns-inverso-cd-jconza)
                                                │
                                          (IAM Role: s3:GetObject)
                                                │
@@ -238,7 +238,7 @@ aws ec2 run-instances \
     --key-name <YOUR_KEY_PAIR> \
     --security-group-ids <YOUR_SECURITY_GROUP> \
     --user-data file://deploy_ec2_userdata.sh \
-    --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=PINN-Inverse-Drag-API}]'
+    --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=pinns-inverso-cd-jconza}]'
 ```
 
 ### Métricas de Rendimiento en AWS:

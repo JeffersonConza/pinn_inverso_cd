@@ -1,0 +1,11 @@
+torch
+numpy
+scipy
+matplotlib
+pillow
+fastapi
+uvicorn
+pydantic
+python-dotenv
+boto3
+requests

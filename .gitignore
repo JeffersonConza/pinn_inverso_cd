@@ -1,0 +1,33 @@
+# Python & Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+
+# Project 1 reference folder & local prompt files
+pinn-burgers1d/
+respuesta_*.txt
+indicaciones.txt
+*.pdf
+
+# Environment variables & local secrets
+.env.local
+
+# IDEs and OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log

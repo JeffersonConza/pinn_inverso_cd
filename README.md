@@ -96,10 +96,18 @@ $$
 $$
 
 Donde:
-* **Pérdida de Observaciones de Sensores ($\mathcal{L}_{\text{data}}$)**:
-  $$\mathcal{L}_{\text{data}} = \frac{1}{N} \sum_{i=1}^{N} \left| y_{\theta}(t_i) - y_{\text{sensor}}(t_i) \right|^2$$
-* **Residuo Físico de la ODE ($\mathcal{L}_{\text{ODE}}$)**:
-  $$\mathcal{L}_{\text{ODE}} = \frac{1}{N_{\text{col}}} \sum_{j=1}^{N_{\text{col}}} \left| a_{\theta}(t_j) + g + \frac{\rho A}{2m} \mathbf{C_d} \cdot v_{\theta}(t_j) |v_{\theta}(t_j)| \right|^2$$
+
+- **Pérdida de Observaciones de Sensores ($\mathcal{L}_{\text{data}}$):**
+
+$$
+\mathcal{L}_{\text{data}} = \frac{1}{N} \sum_{i=1}^{N} \left| y_{\theta}(t_i) - y_{\text{sensor}}(t_i) \right|^2
+$$
+
+- **Residuo Físico de la ODE ($\mathcal{L}_{\text{ODE}}$):**
+
+$$
+\mathcal{L}_{\text{ODE}} = \frac{1}{N_{\text{col}}} \sum_{j=1}^{N_{\text{col}}} \left| a_{\theta}(t_j) + g + \frac{\rho A}{2m} \mathbf{C_d} \cdot v_{\theta}(t_j) |v_{\theta}(t_j)| \right|^2
+$$
 
 ---
 

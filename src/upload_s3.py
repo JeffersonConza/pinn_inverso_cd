@@ -38,7 +38,12 @@ def upload_model_to_s3(
     print(f"   Archivo local: {local_path} ({os.path.getsize(local_path) / 1024:.2f} KB)")
 
     try:
-        s3_client = boto3.client("s3")
+        verify_ssl = os.getenv("AWS_VERIFY_SSL", "true").lower() != "false"
+        if not verify_ssl:
+            import urllib3
+            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+        s3_client = boto3.client("s3", verify=verify_ssl)
         s3_client.upload_file(local_path, bucket_name, s3_key)
         print(f"✅ ¡Éxito! Modelo subido a s3://{bucket_name}/{s3_key}")
         return True

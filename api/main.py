@@ -35,9 +35,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # 1. Sincronización desde S3 (si está configurado)
     if S3_BUCKET:
         try:
-            import boto3
-            print(f"📦 Conectando con AWS S3 (Bucket: {S3_BUCKET})...")
-            s3 = boto3.client("s3")
+            verify_ssl = os.getenv("AWS_VERIFY_SSL", "true").lower() != "false"
+            if not verify_ssl:
+                import urllib3
+                urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+            s3 = boto3.client("s3", verify=verify_ssl)
             os.makedirs(os.path.dirname(MODEL_PATH) or ".", exist_ok=True)
             s3.download_file(S3_BUCKET, S3_MODEL_KEY, MODEL_PATH)
             print(f"✅ Modelo descargado desde s3://{S3_BUCKET}/{S3_MODEL_KEY}")

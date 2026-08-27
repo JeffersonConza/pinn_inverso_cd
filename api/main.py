@@ -362,7 +362,10 @@ def get_interactive_demo():
                     <p class="text-xs text-slate-400">Jefferson Conza · Universidad Yachay Tech & AWS Cloud Institute</p>
                 </div>
             </div>
-            <div class="flex items-center space-x-4">
+            <div class="flex items-center space-x-3">
+                <button onclick="toggleQRModal()" class="px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-bold text-xs transition-all flex items-center gap-1.5 shadow-md shadow-amber-500/20">
+                    <i class="fa-solid fa-qrcode"></i> <span>Código QR</span>
+                </button>
                 <span id="telemetryBadge" class="hidden sm:inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                     <i class="fa-solid fa-bolt mr-1.5 animate-pulse"></i> Latencia EC2: <span id="latencyVal" class="ml-1 font-mono">-- ms</span>
                 </span>
@@ -512,6 +515,24 @@ def get_interactive_demo():
 
     </main>
 
+    <!-- QR Code Modal (For Audience Interaction) -->
+    <div id="qrModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4" onclick="toggleQRModal()">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl p-6 max-w-sm w-full text-center space-y-4 shadow-2xl" onclick="event.stopPropagation()">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="font-bold text-sm text-white flex items-center gap-2">
+                    <i class="fa-solid fa-qrcode text-amber-400"></i> Conéctate a la Demo
+                </h3>
+                <button onclick="toggleQRModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="bg-white p-3 rounded-xl inline-block shadow-inner">
+                <img id="qrImage" src="" alt="QR Code" class="w-52 h-52">
+            </div>
+            <p class="text-xs text-slate-400">Escanea este código con tu teléfono para acceder y experimentar con la calibración PINN en vivo.</p>
+            <p id="qrUrlText" class="text-[11px] font-mono text-amber-400 bg-slate-950 p-2 rounded-lg break-all"></p>
+            <button onclick="toggleQRModal()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-semibold transition">Cerrar</button>
+        </div>
+    </div>
+
     <script>
         const PRESET_DESCRIPTIONS = {
             smooth_sphere: "Flujo laminar alrededor de un cuerpo esférico simétrico.",
@@ -559,19 +580,19 @@ def get_interactive_demo():
                     scales: {
                         x: {
                             type: 'linear',
-                            title: { display: true, text: 'Tiempo (segundos)', color: '#94A3B8' },
+                            title: { display: true, text: 'Tiempo (segundos)', color: '#94a3b8' },
                             grid: { color: 'rgba(51, 65, 85, 0.4)' },
-                            ticks: { color: '#94A3B8' }
+                            ticks: { color: '#94a3b8' }
                         },
                         y: {
-                            title: { display: true, text: 'Altitud y(t) (metros)', color: '#94A3B8' },
+                            title: { display: true, text: 'Altitud y(t) (metros)', color: '#94a3b8' },
                             grid: { color: 'rgba(51, 65, 85, 0.4)' },
-                            ticks: { color: '#94A3B8' }
+                            ticks: { color: '#94a3b8' }
                         }
                     },
                     plugins: {
                         legend: {
-                            labels: { color: '#F1F5F9', font: { size: 11 } }
+                            labels: { color: '#f8fafc', font: { size: 11 } }
                         }
                     }
                 }
@@ -622,6 +643,22 @@ def get_interactive_demo():
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = originalHTML;
+            }
+        }
+
+        // Modal de Código QR
+        function toggleQRModal() {
+            const modal = document.getElementById('qrModal');
+            const qrImg = document.getElementById('qrImage');
+            const qrUrlText = document.getElementById('qrUrlText');
+            const isHidden = modal.classList.contains('hidden');
+            if (isHidden) {
+                const currentUrl = window.location.href;
+                qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(currentUrl)}`;
+                qrUrlText.innerText = currentUrl;
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
             }
         }
 

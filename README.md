@@ -26,11 +26,11 @@ $$
 
 ## 🌟 Visualizador Web Interactivo en Tiempo Real (`/demo`)
 
-El microservicio incluye un panel web interactivo desplegado sobre **FastAPI**, **TailwindCSS** y **Chart.js** en AWS EC2, con inferencia y calibración inversa en $< 300\text{ ms}$:
+El microservicio incluye un panel web interactivo desplegado sobre **FastAPI**, **TailwindCSS** y **Chart.js** en AWS EC2, con generador de **Código QR para la audiencia**, inferencia y calibración inversa en $< 300\text{ ms}$:
 
 <div align="center">
-  <img src="data/inverse_discovery_dashboard.png" alt="Dashboard PINN Descubrimiento Inverso de Cd" width="880"/>
-  <p><i>Figura 1: Panel analítico multipane que consolida el ajuste de trayectoria, la convergencia del parámetro $C_d$, el historial de pérdidas y la derivada continua de velocidad.</i></p>
+  <img src="data/interactive_demo_preview.png" alt="Simulador Interactivo PINN Descubrimiento de Cd" width="850"/>
+  <p><i>Figura 1: Visualizador en vivo con selector de presets físicos, simulación de ruido gaussiano de radar, código QR para móviles y telemetría de latencia en AWS EC2.</i></p>
 </div>
 
 ---
@@ -40,9 +40,10 @@ El microservicio incluye un panel web interactivo desplegado sobre **FastAPI**, 
 ```text
 pinn_inverso_cd/
 ├── api/
-│   └── main.py                  # API REST con FastAPI, validación Pydantic, visualizador /demo y sync S3
+│   └── main.py                  # API REST con FastAPI, validación Pydantic, visualizador /demo, código QR y sync S3
 ├── data/
 │   ├── cd_convergence.png       # Curva de convergencia de Cd estimado vs Ground Truth
+│   ├── interactive_demo_preview.png # Captura del visualizador interactivo en vivo
 │   ├── inverse_discovery_dashboard.png # Panel multipane resumen 4 en 1
 │   ├── loss_history.png         # Curvas de pérdida de datos (MSE) y residual físico (ODE)
 │   ├── synthetic_measurements.csv # Dataset sintético exportado con mediciones ruidosas

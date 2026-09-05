@@ -1,9 +1,14 @@
 # src/physics_engine.py
 from typing import Dict, Any, Tuple
 import numpy as np
-from scipy.integrate import solve_ivp
 import os
 import csv
+
+try:
+    from scipy.integrate import solve_ivp
+    _HAS_SCIPY = True
+except ImportError:
+    _HAS_SCIPY = False
 
 from src.config import Config
 
@@ -33,6 +38,49 @@ class PhysicsEngine:
         return np.array([dydt, dvdt])
 
     @classmethod
+    def _rk4_native_solve(
+        cls,
+        t_eval: np.ndarray,
+        cd: float,
+        mass: float,
+        gravity: float,
+        rho: float,
+        area: float,
+        y0: float,
+        v0: float,
+    ) -> Tuple[np.ndarray, np.ndarray]:
+        """Integrador Runge-Kutta de 4to orden (RK4) nativo de alta precisión."""
+        t_eval = np.asarray(t_eval, dtype=float)
+        n = len(t_eval)
+        y_out = np.zeros(n, dtype=float)
+        v_out = np.zeros(n, dtype=float)
+        y_out[0] = y0
+        v_out[0] = v0
+
+        cur_state = np.array([y0, v0], dtype=float)
+        substeps = 25
+        args = (cd, mass, gravity, rho, area)
+
+        for idx in range(n - 1):
+            t_start = t_eval[idx]
+            t_end = t_eval[idx + 1]
+            dt = (t_end - t_start) / substeps
+            t_curr = t_start
+
+            for _ in range(substeps):
+                k1 = cls.ode_system(t_curr, cur_state, *args)
+                k2 = cls.ode_system(t_curr + 0.5 * dt, cur_state + 0.5 * dt * k1, *args)
+                k3 = cls.ode_system(t_curr + 0.5 * dt, cur_state + 0.5 * dt * k2, *args)
+                k4 = cls.ode_system(t_curr + dt, cur_state + dt * k3, *args)
+                cur_state = cur_state + (dt / 6.0) * (k1 + 2.0 * k2 + 2.0 * k3 + k4)
+                t_curr += dt
+
+            y_out[idx + 1] = cur_state[0]
+            v_out[idx + 1] = cur_state[1]
+
+        return y_out, v_out
+
+    @classmethod
     def solve_exact_trajectory(
         cls,
         t_eval: np.ndarray,
@@ -44,28 +92,31 @@ class PhysicsEngine:
         y0: float = Config.INITIAL_HEIGHT,
         v0: float = Config.INITIAL_VELOCITY,
     ) -> Tuple[np.ndarray, np.ndarray]:
-        """Resuelve con alta precisión la trayectoria mediante Runge-Kutta 45 (RK45).
+        """Resuelve con alta precisión la trayectoria mediante RK45 (scipy o nativo).
 
         Returns:
             Tuple[np.ndarray, np.ndarray]: (posiciones_y, velocidades_v) evaluadas en t_eval.
         """
-        t_span = (float(t_eval[0]), float(t_eval[-1]))
-        initial_state = [y0, v0]
+        if _HAS_SCIPY:
+            t_span = (float(t_eval[0]), float(t_eval[-1]))
+            initial_state = [y0, v0]
 
-        sol = solve_ivp(
-            fun=cls.ode_system,
-            t_span=t_span,
-            y0=initial_state,
-            t_eval=t_eval,
-            method="RK45",
-            args=(cd, mass, gravity, rho, area),
-            rtol=1e-8,
-            atol=1e-10,
-        )
+            sol = solve_ivp(
+                fun=cls.ode_system,
+                t_span=t_span,
+                y0=initial_state,
+                t_eval=t_eval,
+                method="RK45",
+                args=(cd, mass, gravity, rho, area),
+                rtol=1e-8,
+                atol=1e-10,
+            )
 
-        y_exact = sol.y[0]
-        v_exact = sol.y[1]
-        return y_exact, v_exact
+            y_exact = sol.y[0]
+            v_exact = sol.y[1]
+            return y_exact, v_exact
+        else:
+            return cls._rk4_native_solve(t_eval, cd, mass, gravity, rho, area, y0, v0)
 
     @classmethod
     def generate_synthetic_sensor_data(

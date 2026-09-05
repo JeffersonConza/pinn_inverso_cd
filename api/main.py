@@ -3,7 +3,12 @@ from contextlib import asynccontextmanager
 import os
 import time
 from typing import Any, AsyncGenerator, Dict, List, Optional
-from dotenv import load_dotenv
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 from fastapi import FastAPI, HTTPException, Query, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -21,12 +26,25 @@ from src.pinn_inverse import (
     compute_ode_residual,
 )
 
-load_dotenv()
-
 S3_BUCKET: Optional[str] = os.getenv("S3_BUCKET")
 S3_MODEL_KEY: str = os.getenv("S3_MODEL_KEY", "models/inverse_drag_pinn.pt")
 MODEL_PATH: str = os.getenv("MODEL_PATH", Config.MODEL_PATH)
 DEVICE: torch.device = torch.device("cpu")
+
+
+def _init_local_model() -> InverseDragPINN:
+    model = InverseDragPINN(initial_cd_guess=Config.CD_INITIAL_GUESS).to(DEVICE)
+    if os.path.exists(MODEL_PATH):
+        try:
+            checkpoint = torch.load(MODEL_PATH, map_location=DEVICE, weights_only=False)
+            if isinstance(checkpoint, dict) and "model_state_dict" in checkpoint:
+                model.load_state_dict(checkpoint["model_state_dict"])
+            else:
+                model.load_state_dict(checkpoint)
+            model.eval()
+        except Exception:
+            pass
+    return model
 
 
 @asynccontextmanager
@@ -35,6 +53,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # 1. Sincronización desde S3 (si está configurado)
     if S3_BUCKET:
         try:
+            import boto3
             verify_ssl = os.getenv("AWS_VERIFY_SSL", "true").lower() != "false"
             if not verify_ssl:
                 import urllib3
@@ -47,30 +66,12 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             print(f"⚠️ Nota de conexión S3 (usando fallback local): {s3_err}")
 
     # 2. Cargar modelo en memoria RAM
-    model = InverseDragPINN(initial_cd_guess=Config.CD_INITIAL_GUESS).to(DEVICE)
-    if os.path.exists(MODEL_PATH):
-        try:
-            checkpoint = torch.load(MODEL_PATH, map_location=DEVICE, weights_only=False)
-            if isinstance(checkpoint, dict) and "model_state_dict" in checkpoint:
-                model.load_state_dict(checkpoint["model_state_dict"])
-                app.state.cd_discovered = checkpoint.get("cd_discovered", model.cd.item())
-            else:
-                model.load_state_dict(checkpoint)
-                app.state.cd_discovered = model.cd.item()
-            model.eval()
-            app.state.model = model
-            print(f"✅ Modelo PINN inverso cargado en RAM (Cd = {app.state.cd_discovered:.4f}).")
-        except Exception as exc:
-            print(f"❌ Error al cargar checkpoint: {exc}. Usando modelo base.")
-            app.state.model = model
-            app.state.cd_discovered = model.cd.item()
-    else:
-        print(f"⚠️ Checkpoint no encontrado en '{MODEL_PATH}'. Inicializando modelo por defecto.")
-        app.state.model = model
-        app.state.cd_discovered = model.cd.item()
+    model = _init_local_model()
+    app.state.model = model
+    app.state.cd_discovered = model.cd.item()
+    print(f"✅ Modelo PINN inverso listo en RAM (Cd = {app.state.cd_discovered:.4f}).")
 
     yield
-    app.state.model = None
 
 
 app = FastAPI(
@@ -79,6 +80,11 @@ app = FastAPI(
     version="2.0.0",
     lifespan=lifespan,
 )
+
+# Inicialización predeterminada de app.state (compatible con imports y TestClient)
+_default_model = _init_local_model()
+app.state.model = _default_model
+app.state.cd_discovered = _default_model.cd.item()
 
 app.add_middleware(
     CORSMiddleware,
@@ -237,8 +243,8 @@ def discover_drag_coefficient(req: DiscoverRequest) -> DiscoverResponse:
         gravity=gravity,
     ).to(DEVICE)
     optimizer = optim.Adam([
-        {"params": calib_model.layers.parameters(), "lr": 5e-3},
-        {"params": [calib_model.raw_cd], "lr": 2.5e-2},
+        {"params": calib_model.layers.parameters(), "lr": 1e-2},
+        {"params": [calib_model.raw_cd], "lr": 5e-2},
     ])
 
     # 5. Bucle de calibración acelerado en CPU (< 400 ms)
@@ -661,6 +667,34 @@ def get_interactive_demo():
                 modal.classList.add('hidden');
             }
         }
+
+        // Atajos de Teclado para el Ponente (AWS Community Day 2026)
+        window.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+
+            if (e.key === ' ' || e.code === 'Space' || e.key === 'Enter') {
+                e.preventDefault();
+                runDiscovery();
+            } else if (e.key === '1') {
+                document.getElementById('presetSelect').value = 'smooth_sphere';
+                updatePresetInfo();
+                runDiscovery();
+            } else if (e.key === '2') {
+                document.getElementById('presetSelect').value = 'baseball';
+                updatePresetInfo();
+                runDiscovery();
+            } else if (e.key === '3') {
+                document.getElementById('presetSelect').value = 'cylinder';
+                updatePresetInfo();
+                runDiscovery();
+            } else if (e.key === '4') {
+                document.getElementById('presetSelect').value = 'skydiver';
+                updatePresetInfo();
+                runDiscovery();
+            } else if (e.key === 'q' || e.key === 'Q') {
+                toggleQRModal();
+            }
+        });
 
         window.addEventListener('DOMContentLoaded', () => {
             initChart();

@@ -207,8 +207,20 @@ python -m uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
 | `GET` | `/docs` | Documentación interactiva OpenAPI / Swagger UI. |
 | `GET` | `/health` | Estado del microservicio y modelo cargado en RAM. |
 | `GET` | `/presets` | Lista de casos físicos preconfigurados (*Esfera*, *Béisbol*, *Cohete*, *Paracaidista*). |
-| `GET` | `/predict` | Inferencia de altitud $y(t)$, velocidad $\dot{y}(t)$ y $C_d$ en $< 1\text{ ms}$. |
 | `POST` | `/discover_cd` | **Calibración inversa en vivo (< 300 ms)** descubriendo $C_d$ a partir de telemetría. |
+
+> **🎮 Atajos de Teclado para el Ponente:**
+> - `Barra Espaciadora` / `Enter`: Ejecutar descubrimiento inverso de $C_d$ en tiempo real.
+> - `1`: Preset 🏀 Esfera Lisa ($C_d = 0.47$).
+> - `2`: Preset ⚾ Pelota de Béisbol ($C_d = 0.30$).
+> - `3`: Preset 🚀 Cilindro / Cohete ($C_d = 0.82$).
+> - `4`: Preset 🪂 Paracaidista ($C_d = 1.20$).
+> - `Q`: Abrir / Cerrar el modal del **Código QR para la audiencia móvil**.
+
+### Ejecución de Pruebas Automatizadas
+```bash
+pytest test_api.py -v
+```
 
 ---
 
